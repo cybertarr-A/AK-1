@@ -1,9 +1,10 @@
 #include <stdint.h>
 #include "idt.h"
+#include "timer.h"
 
-/* ===================================
+/* ======================================
    MULTIBOOT HEADER
-=================================== */
+====================================== */
 
 #define MULTIBOOT_MAGIC 0x1BADB002
 #define MULTIBOOT_FLAGS 0
@@ -18,16 +19,15 @@ const unsigned long multiboot_header[] =
     MULTIBOOT_CHECKSUM
 };
 
-/* ===================================
+/* ======================================
    VGA TERMINAL
-=================================== */
+====================================== */
 
 #define VGA_WIDTH 80
 #define VGA_HEIGHT 25
 #define VGA_COLOR 0x0F
 
-volatile uint16_t* vga =
-(uint16_t*)0xB8000;
+volatile uint16_t* vga=(uint16_t*)0xB8000;
 
 int row=0;
 int col=0;
@@ -49,7 +49,7 @@ void clear_screen()
 
 void putchar(char c)
 {
-    /* Handle newline */
+    /* newline */
 
     if(c=='\n')
     {
@@ -58,7 +58,7 @@ void putchar(char c)
         return;
     }
 
-    /* Handle backspace */
+    /* backspace */
 
     if(c==8)
     {
@@ -66,16 +66,14 @@ void putchar(char c)
         {
             col--;
 
-            vga[row*VGA_WIDTH+col] =
+            vga[row*VGA_WIDTH+col]=
             (VGA_COLOR<<8)|' ';
         }
 
         return;
     }
 
-    /* Print normal character */
-
-    vga[row*VGA_WIDTH+col] =
+    vga[row*VGA_WIDTH+col]=
     (VGA_COLOR<<8)|c;
 
     col++;
@@ -92,20 +90,20 @@ void putchar(char c)
     }
 }
 
-void print(const char* str)
+void print(const char* s)
 {
     int i=0;
 
-    while(str[i])
+    while(s[i])
     {
-        putchar(str[i]);
+        putchar(s[i]);
         i++;
     }
 }
 
-/* ===================================
+/* ======================================
    PORT I/O
-=================================== */
+====================================== */
 
 static inline uint8_t inb(uint16_t port)
 {
@@ -120,14 +118,14 @@ static inline uint8_t inb(uint16_t port)
     return result;
 }
 
-/* ===================================
+/* ======================================
    KEYBOARD
-=================================== */
+====================================== */
 
 char keyboard_map[128]=
 {
-    0,27,'1','2','3','4','5','6',
-    '7','8','9','0',
+    0,27,'1','2','3','4','5',
+    '6','7','8','9','0',
     '-','=',8,'\t',
 
     'q','w','e','r','t',
@@ -146,15 +144,11 @@ char keyboard_map[128]=
 
 void keyboard_poll()
 {
-    /* Data available? */
-
     if(!(inb(0x64)&1))
         return;
 
     uint8_t scancode=
     inb(0x60);
-
-    /* Ignore key release */
 
     if(scancode&0x80)
         return;
@@ -169,11 +163,11 @@ void keyboard_poll()
     }
 }
 
-/* ===================================
+/* ======================================
    MEMORY MANAGER
-=================================== */
+====================================== */
 
-#define HEAP_SIZE 1024*1024
+#define HEAP_SIZE (1024*1024)
 
 uint8_t kernel_heap[HEAP_SIZE];
 
@@ -194,11 +188,11 @@ void* kmalloc(uint32_t size)
     return ptr;
 }
 
-/* ===================================
+/* ======================================
    KERNEL ENTRY
-=================================== */
+====================================== */
 
-void kernel_main(void)
+void kernel_main()
 {
     clear_screen();
 
@@ -209,16 +203,15 @@ void kernel_main(void)
     print("AI Core: Offline\n");
     print("Keyboard Driver: Active\n");
 
-    void* memory =
-    kmalloc(64);
+    void* mem = kmalloc(64);
 
-    if(memory)
+    if(mem)
     {
         print("Memory Manager: Active\n");
     }
     else
     {
-        print("Memory Allocation Failed\n");
+        print("Memory Manager: Failed\n");
     }
 
     print("Loading IDT...\n");
@@ -226,6 +219,10 @@ void kernel_main(void)
     idt_init();
 
     print("Interrupt System: Active\n");
+
+    timer_init();
+
+    print("Timer System: Active\n");
 
     print("\nType below:\n");
 
