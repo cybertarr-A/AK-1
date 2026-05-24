@@ -4,6 +4,7 @@
 #include "pic.h"
 #include "irq.h"
 #include "task.h"
+#include "scheduler.h"
 
 /* ======================================
    MULTIBOOT HEADER
@@ -231,7 +232,7 @@ void kernel_main()
 
     print("PIC: Active\n");
 
-    /* IRQ handlers not ready yet */
+    /* IRQ handlers still not implemented */
 
     print("IRQ: Pending\n");
 
@@ -242,6 +243,10 @@ void kernel_main()
     task_init();
 
     print("Task System: Active\n");
+
+    scheduler_init();
+
+    print("Scheduler: Active\n");
 
     print("\nType below:\n");
 

@@ -17,7 +17,8 @@ $(BUILD)/idt.o \
 $(BUILD)/timer.o \
 $(BUILD)/pic.o \
 $(BUILD)/irq.o \
-$(BUILD)/task.o
+$(BUILD)/task.o \
+$(BUILD)/scheduler.o
 
 # ==========================
 # Main Build
@@ -54,6 +55,9 @@ $(BUILD)/irq.o: kernel/irq.c | $(BUILD)
 $(BUILD)/task.o: kernel/task.c | $(BUILD)
 	$(CC) $(CFLAGS) -c $< -o $@
 
+$(BUILD)/scheduler.o: kernel/scheduler.c | $(BUILD)
+	$(CC) $(CFLAGS) -c $< -o $@
+
 # ==========================
 # Link Kernel
 # ==========================
@@ -65,7 +69,7 @@ $(BUILD)/kernel.bin: $(OBJS)
 	-o $@
 
 # ==========================
-# Create Bootable ISO
+# Create ISO
 # ==========================
 
 iso: $(BUILD)/kernel.bin
