@@ -2,6 +2,8 @@
 #include "idt.h"
 #include "timer.h"
 #include "pic.h"
+#include "irq.h"
+#include "task.h"
 
 /* ======================================
    MULTIBOOT HEADER
@@ -229,9 +231,17 @@ void kernel_main()
 
     print("PIC: Active\n");
 
+    /* IRQ handlers not ready yet */
+
+    print("IRQ: Pending\n");
+
     timer_init();
 
     print("Timer System: Active\n");
+
+    task_init();
+
+    print("Task System: Active\n");
 
     print("\nType below:\n");
 

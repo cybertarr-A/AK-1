@@ -7,11 +7,17 @@ LDFLAGS=-m elf_i386 -T kernel/linker.ld
 BUILD=build
 ISO=$(BUILD)/iso
 
+# ==========================
+# Object Files
+# ==========================
+
 OBJS=\
 $(BUILD)/kernel.o \
 $(BUILD)/idt.o \
 $(BUILD)/timer.o \
-$(BUILD)/pic.o
+$(BUILD)/pic.o \
+$(BUILD)/irq.o \
+$(BUILD)/task.o
 
 # ==========================
 # Main Build
@@ -42,23 +48,27 @@ $(BUILD)/timer.o: kernel/timer.c | $(BUILD)
 $(BUILD)/pic.o: kernel/pic.c | $(BUILD)
 	$(CC) $(CFLAGS) -c $< -o $@
 
+$(BUILD)/irq.o: kernel/irq.c | $(BUILD)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(BUILD)/task.o: kernel/task.c | $(BUILD)
+	$(CC) $(CFLAGS) -c $< -o $@
+
 # ==========================
 # Link Kernel
 # ==========================
 
 $(BUILD)/kernel.bin: $(OBJS)
-
 	$(LD) \
 	$(LDFLAGS) \
 	$(OBJS) \
 	-o $@
 
 # ==========================
-# Build ISO
+# Create Bootable ISO
 # ==========================
 
 iso: $(BUILD)/kernel.bin
-
 	mkdir -p $(ISO)/boot/grub
 
 	cp $(BUILD)/kernel.bin \
@@ -72,7 +82,7 @@ iso: $(BUILD)/kernel.bin
 	$(ISO)
 
 # ==========================
-# Run
+# Run Kernel
 # ==========================
 
 run: all
@@ -86,8 +96,4 @@ run: all
 clean:
 	rm -rf $(BUILD)
 
-.PHONY: \
-all \
-iso \
-run \
-clean
+.PHONY: all iso run clean
