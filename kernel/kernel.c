@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include "idt.h"
 #include "timer.h"
+#include "pic.h"
 
 /* ======================================
    MULTIBOOT HEADER
@@ -200,7 +201,9 @@ void kernel_main()
     print("=====================\n");
 
     print("Kernel Boot Success\n");
+
     print("AI Core: Offline\n");
+
     print("Keyboard Driver: Active\n");
 
     void* mem = kmalloc(64);
@@ -219,6 +222,12 @@ void kernel_main()
     idt_init();
 
     print("Interrupt System: Active\n");
+
+    print("Initializing PIC...\n");
+
+    pic_init();
+
+    print("PIC: Active\n");
 
     timer_init();
 

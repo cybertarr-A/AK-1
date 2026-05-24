@@ -7,12 +7,28 @@ LDFLAGS=-m elf_i386 -T kernel/linker.ld
 BUILD=build
 ISO=$(BUILD)/iso
 
+OBJS=\
+$(BUILD)/kernel.o \
+$(BUILD)/idt.o \
+$(BUILD)/timer.o \
+$(BUILD)/pic.o
+
+# ==========================
+# Main Build
+# ==========================
+
 all: $(BUILD)/kernel.bin iso
+
+# ==========================
+# Build Directory
+# ==========================
 
 $(BUILD):
 	mkdir -p $(BUILD)
 
-# Compile source files
+# ==========================
+# Compile Sources
+# ==========================
 
 $(BUILD)/kernel.o: kernel/kernel.c | $(BUILD)
 	$(CC) $(CFLAGS) -c $< -o $@
@@ -23,23 +39,26 @@ $(BUILD)/idt.o: kernel/idt.c | $(BUILD)
 $(BUILD)/timer.o: kernel/timer.c | $(BUILD)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# Link kernel
+$(BUILD)/pic.o: kernel/pic.c | $(BUILD)
+	$(CC) $(CFLAGS) -c $< -o $@
 
-$(BUILD)/kernel.bin: \
-$(BUILD)/kernel.o \
-$(BUILD)/idt.o \
-$(BUILD)/timer.o
+# ==========================
+# Link Kernel
+# ==========================
+
+$(BUILD)/kernel.bin: $(OBJS)
 
 	$(LD) \
 	$(LDFLAGS) \
-	$(BUILD)/kernel.o \
-	$(BUILD)/idt.o \
-	$(BUILD)/timer.o \
+	$(OBJS) \
 	-o $@
 
-# Create ISO
+# ==========================
+# Build ISO
+# ==========================
 
 iso: $(BUILD)/kernel.bin
+
 	mkdir -p $(ISO)/boot/grub
 
 	cp $(BUILD)/kernel.bin \
@@ -52,13 +71,23 @@ iso: $(BUILD)/kernel.bin
 	-o $(BUILD)/ak1.iso \
 	$(ISO)
 
+# ==========================
 # Run
+# ==========================
 
 run: all
 	qemu-system-i386 \
 	-cdrom $(BUILD)/ak1.iso
 
+# ==========================
+# Clean
+# ==========================
+
 clean:
 	rm -rf $(BUILD)
 
-.PHONY: all iso run clean
+.PHONY: \
+all \
+iso \
+run \
+clean
